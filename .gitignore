@@ -9,7 +9,6 @@ _site
 dist/*.js
 coverage/
 *.js.html
-index.html
 .mailmap
 bower.json
 component.json
