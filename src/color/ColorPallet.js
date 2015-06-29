@@ -1,6 +1,6 @@
 var Color = Color || {};
 
-Color.Pallet = function () {
+Color.Pallet = (function Pallet () {
   var self = {};
 
 
@@ -11,15 +11,15 @@ Color.Pallet = function () {
 
   self.sequential = function (level, palletName) {
     if (!palletName) {
-      palletName == "redToOrange";  // Default
+      palletName = "redToOrange";  // Default
     }
 
     // Value should be either {0, 1, 2, 3, 4}
-    level = Math.min(val, 4);
-    level = Math.max(val, 0);
+    level = Math.min(level, 4);
+    level = Math.max(level, 0);
 
     return sequentialPallet[palletName][level];
   };
 
   return self;
-}
+})();
