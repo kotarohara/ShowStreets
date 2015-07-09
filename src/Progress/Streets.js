@@ -28,7 +28,7 @@ Progress.streets = (function Streets($, L) {
     }
 
     // Show streets
-    $.getJSON("resources/SmallMap_02_Streets.geojson", function(data) {
+    $.getJSON("../resources/SmallMap_02_Streets.geojson", function(data) {
       L.geoJson(data, {
         pointToLayer: L.mapbox.marker.style,
         style: function(feature) {
