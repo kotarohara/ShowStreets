@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Leaflet.draw drawing and editing tools</title>
+
+	<link rel="stylesheet" href="../lib/leaflet.css" />
+	<link rel="stylesheet" href="../lib/leaflet.draw.css" />
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+
+	<script src="../lib/leaflet-src.js"></script>
+	<script src="../lib/leaflet.draw.js"></script>
+
+	<script src="../lib/Leaflet.draw/edit/handler/Edit.Poly.js"></script>
+	<script src="../lib/Leaflet.draw/edit/handler/Edit.SimpleShape.js"></script>
+	<script src="../lib/Leaflet.draw/edit/handler/Edit.Circle.js"></script>
+	<script src="../lib/Leaflet.draw/edit/handler/Edit.Rectangle.js"></script>
+
+	<script src="../lib/Leaflet.draw/draw/handler/Draw.Feature.js"></script>
+	<script src="../lib/Leaflet.draw/draw/handler/Draw.Polyline.js"></script>
+	<script src="../lib/Leaflet.draw/draw/handler/Draw.Polygon.js"></script>
+	<script src="../lib/Leaflet.draw/draw/handler/Draw.SimpleShape.js"></script>
+	<script src="../lib/Leaflet.draw/draw/handler/Draw.Rectangle.js"></script>
+	<script src="../lib/Leaflet.draw/draw/handler/Draw.Circle.js"></script>
+	<script src="../lib/Leaflet.draw/draw/handler/Draw.Marker.js"></script>
+
+	<script src="../lib/Leaflet.draw/ext/LatLngUtil.js"></script>
+	<script src="../lib/Leaflet.draw/ext/GeometryUtil.js"></script>
+	<script src="../lib/Leaflet.draw/ext/LineUtil.Intersect.js"></script>
+	<script src="../lib/Leaflet.draw/ext/Polyline.Intersect.js"></script>
+	<script src="../lib/Leaflet.draw/ext/Polygon.Intersect.js"></script>
+
+	<script src="../lib/Leaflet.draw/Control.Draw.js"></script>
+	<script src="../lib/Leaflet.draw/Tooltip.js"></script>
+	<script src="../lib/Leaflet.draw/Toolbar.js"></script>
+
+	<script src="../lib/Leaflet.draw/draw/DrawToolbar.js"></script>
+	<script src="../lib/Leaflet.draw/edit/EditToolbar.js"></script>
+	<script src="../lib/Leaflet.draw/edit/handler/EditToolbar.Edit.js"></script>
+	<script src="../lib/Leaflet.draw/edit/handler/EditToolbar.Delete.js"></script>
+</head>
+<body>
+	<div id="map" style="width: 800px; height: 600px; border: 1px solid #ccc"></div>
+	<script>
+		var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+			osmAttrib = '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+			osm = L.tileLayer(osmUrl, {maxZoom: 18, attribution: osmAttrib}),
+			map = new L.Map('map', {layers: [osm], center: new L.LatLng(38.896062157781664, -76.98067715121654), zoom: 15 });
+
+
+		var drawnItems = new L.FeatureGroup();
+		map.addLayer(drawnItems);
+
+
+
+		// Set the title to show on the polygon button
+		L.drawLocal.draw.toolbar.buttons.polygon = 'Draw a sexy polygon!';
+
+		var drawControl = new L.Control.Draw({
+			position: 'topright',
+			draw: {
+				polyline: {
+					metric: true
+				},
+				polygon: {
+					allowIntersection: false,
+					showArea: true,
+					drawError: {
+						color: '#b00b00',
+						timeout: 1000
+					},
+					shapeOptions: {
+						color: '#bada55'
+					}
+				},
+				circle: {
+					shapeOptions: {
+						color: '#662d91'
+					}
+				},
+				marker: false
+			},
+			edit: {
+				featureGroup: drawnItems,
+				remove: false
+			}
+		});
+		map.addControl(drawControl);
+
+		map.on('draw:created', function (e) {
+			var type = e.layerType,
+				layer = e.layer;
+
+			if (type === 'marker') {
+				layer.bindPopup('A popup!');
+			}
+
+			drawnItems.addLayer(layer);
+		});
+
+		map.on('draw:edited', function (e) {
+			var layers = e.layers;
+			var countOfEditedLayers = 0;
+			layers.eachLayer(function(layer) {
+				countOfEditedLayers++;
+			});
+			console.log("Edited " + countOfEditedLayers + " layers");
+		});
+
+
+		// Geojson to editable polygons.
+		// https://github.com/Leaflet/Leaflet.draw/issues/187
+		// https://github.com/Leaflet/Leaflet.draw/issues/103
+		$.getJSON("smallmap.geojson", function(data) {
+
+			var geojsonLayerGroup = L.geoJson(data);
+			var geolayers = geojsonLayerGroup.getLayers();
+			for (var i = 0; i < geolayers.length; i++) {
+					drawnItems.addLayer(geolayers[i]);
+			}
+		})
+		.done(function () {
+				console.log(drawnItems.toGeoJSON());
+		});
+	</script>
+</body>
+</html>
