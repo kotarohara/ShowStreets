@@ -5,10 +5,12 @@
 
 	<link rel="stylesheet" href="../lib/leaflet.css" />
 	<link rel="stylesheet" href="../lib/leaflet.draw.css" />
+	<script src='https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.js'></script>
+	<link href='https://api.tiles.mapbox.com/mapbox.js/v2.2.1/mapbox.css' rel='stylesheet' />
 
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 
-	<script src="../lib/leaflet-src.js"></script>
+	<!-- <script src="../lib/leaflet-src.js"></script> -->
 	<script src="../lib/leaflet.draw.js"></script>
 
 	<script src="../lib/Leaflet.draw/edit/handler/Edit.Poly.js"></script>
@@ -38,89 +40,88 @@
 	<script src="../lib/Leaflet.draw/edit/EditToolbar.js"></script>
 	<script src="../lib/Leaflet.draw/edit/handler/EditToolbar.Edit.js"></script>
 	<script src="../lib/Leaflet.draw/edit/handler/EditToolbar.Delete.js"></script>
+
+	<style>
+	  body { margin:0; padding:0; }
+	  #map { position:absolute; top:0; bottom:0; width:100%; }
+	</style>
 </head>
 <body>
-	<div id="map" style="width: 800px; height: 600px; border: 1px solid #ccc"></div>
+	<div id="map"></div>
 	<script>
-		var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-			osmAttrib = '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-			osm = L.tileLayer(osmUrl, {maxZoom: 18, attribution: osmAttrib}),
-			map = new L.Map('map', {layers: [osm], center: new L.LatLng(38.896062157781664, -76.98067715121654), zoom: 15 });
+	$(document).ready(function () {
+		L.mapbox.accessToken = 'pk.eyJ1Ijoia290YXJvaGFyYSIsImEiOiJDdmJnOW1FIn0.kJV65G6eNXs4ATjWCtkEmA';
+			// var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+			// 	osmAttrib = '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+			// 	osm = L.tileLayer(osmUrl, {maxZoom: 18, attribution: osmAttrib}),
+			// 	map = new L.Map('map', {layers: [osm], center: new L.LatLng(38.896062157781664, -76.98067715121654), zoom: 15 });
 
 
-		var drawnItems = new L.FeatureGroup();
-		map.addLayer(drawnItems);
+				var map = L.mapbox.map('map', 'mapbox.streets')
+				    .setView([
+				      38.896146088499464,
+				      -76.98064010565248
+				          ], 15);
+			var drawnItems = new L.FeatureGroup();
+			map.addLayer(drawnItems);
 
 
 
-		// Set the title to show on the polygon button
-		L.drawLocal.draw.toolbar.buttons.polygon = 'Draw a sexy polygon!';
+			// Set the title to show on the polygon button
+			L.drawLocal.draw.toolbar.buttons.polygon = 'Draw a sexy polygon!';
 
-		var drawControl = new L.Control.Draw({
-			position: 'topright',
-			draw: {
-				polyline: {
-					metric: true
+			// http://stackoverflow.com/questions/19676090/leaflet-draw-plugin-how-to-hide-show-drawing-tools-by-layer-type-dynamically
+			var drawControl = new L.Control.Draw({
+				position: 'topright',
+				draw: {
+					polyline: true,
+					polygon: false,
+					circle: false,
+					rectangle: false,
+					marker: false
 				},
-				polygon: {
-					allowIntersection: false,
-					showArea: true,
-					drawError: {
-						color: '#b00b00',
-						timeout: 1000
-					},
-					shapeOptions: {
-						color: '#bada55'
-					}
-				},
-				circle: {
-					shapeOptions: {
-						color: '#662d91'
-					}
-				},
-				marker: false
-			},
-			edit: {
-				featureGroup: drawnItems,
-				remove: false
-			}
-		});
-		map.addControl(drawControl);
-
-		map.on('draw:created', function (e) {
-			var type = e.layerType,
-				layer = e.layer;
-
-			if (type === 'marker') {
-				layer.bindPopup('A popup!');
-			}
-
-			drawnItems.addLayer(layer);
-		});
-
-		map.on('draw:edited', function (e) {
-			var layers = e.layers;
-			var countOfEditedLayers = 0;
-			layers.eachLayer(function(layer) {
-				countOfEditedLayers++;
+				edit: {
+					featureGroup: drawnItems,
+					remove: true
+				}
 			});
-			console.log("Edited " + countOfEditedLayers + " layers");
-		});
+			map.addControl(drawControl);
+
+			map.on('draw:created', function (e) {
+				var type = e.layerType,
+					layer = e.layer;
+
+				if (type === 'marker') {
+					layer.bindPopup('A popup!');
+				}
+
+				drawnItems.addLayer(layer);
+			});
+
+			map.on('draw:edited', function (e) {
+				var layers = e.layers;
+				var countOfEditedLayers = 0;
+				layers.eachLayer(function(layer) {
+					countOfEditedLayers++;
+				});
+				console.log("Edited " + countOfEditedLayers + " layers");
+			});
 
 
-		// Geojson to editable polygons.
-		// https://github.com/Leaflet/Leaflet.draw/issues/187
-		// https://github.com/Leaflet/Leaflet.draw/issues/103
-		$.getJSON("smallmap.geojson", function(data) {
+			// Geojson to editable polygons.
+			// https://github.com/Leaflet/Leaflet.draw/issues/187
+			// https://github.com/Leaflet/Leaflet.draw/issues/103
+			$.getJSON("smallmap.geojson", function(data) {
 
-			var geojsonLayerGroup = L.geoJson(data);
-			var geolayers = geojsonLayerGroup.getLayers();
-			for (var i = 0; i < geolayers.length; i++) {
-					drawnItems.addLayer(geolayers[i]);
-			}
-		})
-		.done(function () {
-				console.log(drawnItems.toGeoJSON());
+				var geojsonLayerGroup = L.geoJson(data);
+				var geolayers = geojsonLayerGroup.getLayers();
+				for (var i = 0; i < geolayers.length; i++) {
+						drawnItems.addLayer(geolayers[i]);
+				}
+			})
+			.done(function () {
+					console.log(drawnItems.toGeoJSON());
+			});
 		});
 	</script>
 </body>
