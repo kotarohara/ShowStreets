@@ -13,33 +13,40 @@
 	<!-- <script src="../lib/leaflet-src.js"></script> -->
 	<script src="../lib/leaflet.draw.js"></script>
 
-	<script src="../lib/Leaflet.draw/edit/handler/Edit.Poly.js"></script>
-	<script src="../lib/Leaflet.draw/edit/handler/Edit.SimpleShape.js"></script>
-	<script src="../lib/Leaflet.draw/edit/handler/Edit.Circle.js"></script>
-	<script src="../lib/Leaflet.draw/edit/handler/Edit.Rectangle.js"></script>
+	<!--<script src="../lib/Leaflet.Draw/edit/handler/Edit.Poly.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/edit/handler/Edit.SimpleShape.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/edit/handler/Edit.Circle.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/edit/handler/Edit.Rectangle.js"></script>-->
 
-	<script src="../lib/Leaflet.draw/draw/handler/Draw.Feature.js"></script>
-	<script src="../lib/Leaflet.draw/draw/handler/Draw.Polyline.js"></script>
-	<script src="../lib/Leaflet.draw/draw/handler/Draw.Polygon.js"></script>
-	<script src="../lib/Leaflet.draw/draw/handler/Draw.SimpleShape.js"></script>
-	<script src="../lib/Leaflet.draw/draw/handler/Draw.Rectangle.js"></script>
-	<script src="../lib/Leaflet.draw/draw/handler/Draw.Circle.js"></script>
-	<script src="../lib/Leaflet.draw/draw/handler/Draw.Marker.js"></script>
+	<!--<script src="../lib/Leaflet.Draw/draw/handler/Draw.Feature.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/draw/handler/Draw.Polyline.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/draw/handler/Draw.Polygon.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/draw/handler/Draw.SimpleShape.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/draw/handler/Draw.Rectangle.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/draw/handler/Draw.Circle.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/draw/handler/Draw.Marker.js"></script>-->
 
-	<script src="../lib/Leaflet.draw/ext/LatLngUtil.js"></script>
-	<script src="../lib/Leaflet.draw/ext/GeometryUtil.js"></script>
-	<script src="../lib/Leaflet.draw/ext/LineUtil.Intersect.js"></script>
-	<script src="../lib/Leaflet.draw/ext/Polyline.Intersect.js"></script>
-	<script src="../lib/Leaflet.draw/ext/Polygon.Intersect.js"></script>
+	<!--<script src="../lib/Leaflet.Draw/ext/LatLngUtil.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/ext/GeometryUtil.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/ext/LineUtil.Intersect.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/ext/Polyline.Intersect.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/ext/Polygon.Intersect.js"></script>-->
 
-	<script src="../lib/Leaflet.draw/Control.Draw.js"></script>
-	<script src="../lib/Leaflet.draw/Tooltip.js"></script>
-	<script src="../lib/Leaflet.draw/Toolbar.js"></script>
+	<!--<script src="../lib/Leaflet.Draw/Control.Draw.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/Tooltip.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/Toolbar.js"></script>-->
 
-	<script src="../lib/Leaflet.draw/draw/DrawToolbar.js"></script>
-	<script src="../lib/Leaflet.draw/edit/EditToolbar.js"></script>
-	<script src="../lib/Leaflet.draw/edit/handler/EditToolbar.Edit.js"></script>
-	<script src="../lib/Leaflet.draw/edit/handler/EditToolbar.Delete.js"></script>
+	<!--<script src="../lib/Leaflet.Draw/draw/DrawToolbar.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/edit/EditToolbar.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/edit/handler/EditToolbar.Edit.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw/edit/handler/EditToolbar.Delete.js"></script>-->
+
+	<!--https://github.com/w8r/Leaflet.draw.drag-->
+	<script src="../lib/Leaflet.Draw.Drag/Leaflet.draw.drag-src.js"></script>
+	<!--<script src="../lib/Leaflet.Path.Drag/Path.Drag.js"></script>-->
+	<!--<script src="../lib/Leaflet.Draw.Drag/Edit.Poly.Drag.js"></script>-->
+
+	<script src="../src/extensions/Polyline.js"></script>
 
 	<style>
 	  body { margin:0; padding:0; }
@@ -49,23 +56,13 @@
 <body>
 	<div id="map"></div>
 	<script>
-	$(document).ready(function () {
-		L.mapbox.accessToken = 'pk.eyJ1Ijoia290YXJvaGFyYSIsImEiOiJDdmJnOW1FIn0.kJV65G6eNXs4ATjWCtkEmA';
-			// var osmUrl = 'http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-			// 	osmAttrib = '&copy; <a href="http://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-			// 	osm = L.tileLayer(osmUrl, {maxZoom: 18, attribution: osmAttrib}),
-			// 	map = new L.Map('map', {layers: [osm], center: new L.LatLng(38.896062157781664, -76.98067715121654), zoom: 15 });
-
-
-				var map = L.mapbox.map('map', 'mapbox.streets')
-				    .setView([
-				      38.896146088499464,
-				      -76.98064010565248
-				          ], 15);
+		L.latlngLookUpTable = {};
+		$(document).ready(function () {
+			L.mapbox.accessToken = 'pk.eyJ1Ijoia290YXJvaGFyYSIsImEiOiJDdmJnOW1FIn0.kJV65G6eNXs4ATjWCtkEmA';
+			var map = L.mapbox.map('map', 'mapbox.streets')
+				.setView([38.8961, -76.9806], 15);
 			var drawnItems = new L.FeatureGroup();
 			map.addLayer(drawnItems);
-
-
 
 			// Set the title to show on the polygon button
 			L.drawLocal.draw.toolbar.buttons.polygon = 'Draw a sexy polygon!';
@@ -103,25 +100,78 @@
 				var countOfEditedLayers = 0;
 				layers.eachLayer(function(layer) {
 					countOfEditedLayers++;
+
+					// Walk through the nodes that are edited.
+					var latlngs = layer.getLatLngs();
+					for (var nodeIdx = 0; nodeIdx < latlngs.length; nodeIdx++) {
+						var node = latlngs[nodeIdx];
+						var otherNodes = L.latlngLookUpTable[node.id];
+						for (var otherIdx = 0; otherIdx < otherNodes.length; otherIdx++) {
+							if (otherNodes[otherIdx] && otherNodes !== node) {
+								console.log(otherNodes[otherIdx]);
+							}
+						}
+					}
 				});
 				console.log("Edited " + countOfEditedLayers + " layers");
 			});
 
+			// Leaflet with geojson
+			// http://leafletjs.com/examples/geojson.html
+//			var geojsonMarkerOptions = {
+//				radius: 3,
+//				fillColor: "#ccc",
+//				color: "#888",
+//				weight: 1,
+//				opacity: 1,
+//				fillOpacity: 1
+//			};
+
+//			$.getJSON("smallmap01-points.geojson", function (data) {
+//				L.geoJson(data, {
+//					pointToLayer: function (feature, latlng) {
+//						return L.circleMarker(latlng, geojsonMarkerOptions);
+//					}
+//				}).addTo(map);});
 
 			// Geojson to editable polygons.
 			// https://github.com/Leaflet/Leaflet.draw/issues/187
 			// https://github.com/Leaflet/Leaflet.draw/issues/103
-			$.getJSON("smallmap.geojson", function(data) {
+			var lineStyle = {
+				"color": "#666",
+				"weight": 2,
+				"opacity": 0.65
+			};
+			$.getJSON("smallmap01.geojson", function(data) {
 
-				var geojsonLayerGroup = L.geoJson(data);
+				var geojsonLayerGroup = L.geoJson(data, {
+					style: lineStyle
+				});
 				var geolayers = geojsonLayerGroup.getLayers();
-				for (var i = 0; i < geolayers.length; i++) {
-						drawnItems.addLayer(geolayers[i]);
+				for (var layerIdx = 0; layerIdx < geolayers.length; layerIdx++) {
+					var geolayer = geolayers[layerIdx];
+					var latlngs = geolayer.getLatLngs();
+					var properties = geolayers[layerIdx].feature.properties;
+
+					geolayer.edited = false;
+					for (var latlngIdx = 0; latlngIdx < latlngs.length; latlngIdx++) {
+						var nodeId = properties.node_ids[latlngIdx];
+						latlngs[latlngIdx]["id"] = nodeId;
+						if (!(nodeId in L.latlngLookUpTable)) L.latlngLookUpTable[nodeId] = [];
+						L.latlngLookUpTable[nodeId].push(latlngs[latlngIdx]);
+					}
+					drawnItems.addLayer(geolayers[layerIdx]);
 				}
-			})
-			.done(function () {
-					console.log(drawnItems.toGeoJSON());
+			}).done(function () {
+				console.log(drawnItems.toGeoJSON());
+				map.eachLayer(function (layer) {
+					if(layer instanceof L.Polyline) {
+						// console.log(layer.getLatLngs());
+					}
+				});
 			});
+
+
 		});
 	</script>
 </body>
