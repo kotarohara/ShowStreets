@@ -98,6 +98,7 @@
         //stream transform. transforms geometry before passing it to
         // listener. Can be used in conjunction with d3.geo.path
         // to implement the transform.
+        // https://github.com/mbostock/d3/wiki/Geo-Streams#stream-transforms
 
         var transform = d3.geo.transform({
             point: projectPoint
@@ -185,7 +186,7 @@
                 .attr("class", "locnames")
                 .attr("y", function(d) {
                     return -10
-                })
+                });
 
 
         // when the user zooms in or out you need to reset
