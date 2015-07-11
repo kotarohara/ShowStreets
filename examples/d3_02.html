@@ -25,7 +25,7 @@
             position: relative;
         }
         path {
-            fill: yellow;
+            fill: none;
             stroke-width: 2px;
             stroke: red;
             stroke-opacity: 1;
@@ -37,7 +37,6 @@
         .waypoints {
             fill: black;
             opacity: 0;
-        }
         }
         .drinks {
             stroke: black;
@@ -75,8 +74,9 @@
     var g = svg.append("g").attr("class", "leaflet-zoom-hide");
 
     d3.json("sample.geojson", function(collection) {
-        var transform = d3.geo.transform({point: projectPoint});
-        var path = d3.geo.path().projection(transform);
+        // https://github.com/mbostock/d3/wiki/Geo-Streams#stream-transforms
+        var transform = d3.geo.transform({point: projectPoint}),
+            path = d3.geo.path().projection(transform);
 
         var feature = g.selectAll("path")
                 .data(collection.features)
@@ -101,13 +101,18 @@
 
             // Setting data ("d") attribute
             // https://github.com/mbostock/d3/wiki/Selections#attr
+            // path is a function. It evaluates the data stored in feature by applying path function,
+            // whichc is a stream transformation function described in the link above.
+            // Inside this stream transformation, the point's lat-lng coordinates are
+            // projected to the layer coordinate (y, x) by map.latLngToLayerPoint method.
             feature.attr("d", path);
-            console.log(feature);
         }
     });
 
     function projectPoint(x, y) {
         var point = map.latLngToLayerPoint(new L.LatLng(y, x));
+
+        // https://github.com/mbostock/d3/wiki/Geo-Streams#stream-transforms
         this.stream.point(point.x, point.y);
     }
 
