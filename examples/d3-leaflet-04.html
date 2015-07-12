@@ -74,9 +74,9 @@
             .addLayer(mapboxTiles)
             .setView([38.895955, -76.9807605], 17);
 
-    map.touchZoom.disable();
-    map.doubleClickZoom.disable();
-    map.scrollWheelZoom.disable();
+//    map.touchZoom.disable();
+//    map.doubleClickZoom.disable();
+//    map.scrollWheelZoom.disable();
 
 
     var svg = d3.select(map.getPanes().overlayPane).append("svg");
@@ -109,63 +109,32 @@
         var transform = d3.geo.transform({point: projectPoint});
         var d3path = d3.geo.path().projection(transform);
 
-        // Create a function that generates a line from multiple points
-        var toLine = d3.svg.line()
-                .interpolate("linear")
-                .x(function (d) {
-                    return applyLatLngToLayer(d).x
-                })
-                .y(function (d) {
-                    return applyLatLngToLayer(d).y
-                });
 
         var featuresdata = linestringToPoints(collection.features[0]);
-
-        // A trick from http://bl.ocks.org/explunit/6082362
-        var lengthAt = [];
-        var ratioAt = [];
-        for (var i = 1; i < featuresdata.length - 1; i++) {
-            var temppath = g.append('path').attr( { d: toLine(featuresdata.slice(i)), class: 'temppath'});
-            lengthAt.push(temppath.node().getTotalLength());
-        }
-        g.selectAll('.temppath').remove();
-
-        // This marker represents a person traveling along the path.
-        var travelPath = g.append('path')
-                .data([featuresdata])
-                .attr("stroke", 'steelblue')
-                .attr("stroke-width", 2)
-                .attr("fill", 'none');
-
-        travelPath.attr("d", toLine);
-        var totalLength = travelPath.node().getTotalLength();
-        travelPath.attr({
-            'stroke-dasharray': totalLength + " " + totalLength,
-            'stroke-dashoffset': totalLength
-        });
-
-
-        var transitionFrom = travelPath;
-        for (var i = 1; i < featuresdata.length - 1; i++) {
-            transitionFrom = transitionFrom.transition()
-                    .duration(1000)
-                    .ease("linear")
-                    .attr("stroke-dashoffset", function () {
-
-                        return lengthAt[i-1] || 0;
-                        //var length = travelPath.node().getTotalLength();
-                        //return lengthAt[i-1] / totalLength * length || 0;
-                    })
-                    .each("start", function () {
-                        console.log(lengthAt[i-1])
-                    })
-                    .transition()
-                    .duration(500);
-        }
+        var marker = g.append("circle")
+                .attr("r", 10)
+                .attr("id", "marker")
+                .attr("class", "travelMarker");
 
         // Adjust the view first
         map.on("viewreset", reset);
         reset();
+
+        for (var i = 1; i < featuresdata.length; i++) {
+            marker = marker.transition()
+                    .duration(1000)
+                    .attr("transform", function () {
+                        var y = featuresdata[i].geometry.coordinates[1];
+                        var x = featuresdata[i].geometry.coordinates[0];
+                        return "translate(" +
+                                map.latLngToLayerPoint(new L.LatLng(y, x)).x + "," +
+                                map.latLngToLayerPoint(new L.LatLng(y, x)).y + ")";
+                    });
+        }
+        marker.transition()
+                .duration(500)
+                .attr("r", 0)
+                .remove();
 
         function reset() {
             // Get the bounding box and align the svg
@@ -179,7 +148,13 @@
             g.attr("transform", "translate(" + (-topLeft[0] + 50) + "," + (-topLeft[1] + 50) + ")");
 
             // Apply the toLine function to align the path to
-            travelPath.attr("d", toLine);
+            marker.attr("transform", function () {
+                var y = featuresdata[0].geometry.coordinates[1];
+                var x = featuresdata[0].geometry.coordinates[0];
+                return "translate(" +
+                        map.latLngToLayerPoint(new L.LatLng(y, x)).x + "," +
+                        map.latLngToLayerPoint(new L.LatLng(y, x)).y + ")";
+            });
         }
     });
 
