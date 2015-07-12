@@ -36,12 +36,12 @@
     var line = d3.svg.line()
             .interpolate('cardinal')
             .x(function(d) {return x(d.x);})
-            .y(function(d) {return y(d.y);})
+            .y(function(d) {return y(d.y);});
 
     // SVG container
     var svg = d3.select('#line')
             .append('svg')
-            .attr( { width: w, height: h, id: 'visualization' } )
+            .attr( { width: w, height: h, id: 'visualization' } );
 
     // Add circles so we can see that the speed changes at the right points. Can remove later
     svg.selectAll('.point')
@@ -55,7 +55,7 @@
     for (var i = 1; i < lineData.length - 1; i++) {
         var path = svg.append('path').attr( { d: line( lineData.slice(i) ), class: 'temppath', visibility: 'hidden' } )
         lengthAt.push(path.node().getTotalLength());
-    };
+    }
     svg.selectAll('.temppath').remove();
 
     // Add the path
@@ -64,6 +64,8 @@
 
     var totalLength = path.node().getTotalLength();
 
+    // stroke-dasharray: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dasharray
+    // stroke-dashoffset: https://developer.mozilla.org/en-US/docs/Web/SVG/Attribute/stroke-dashoffset
     path.attr( {'stroke-dasharray': totalLength + " " + totalLength, 'stroke-dashoffset': totalLength } );
 
     // transition will be chained from either the original path or the last transition
@@ -77,6 +79,9 @@
         transitionFrom = transitionFrom.transition()
                 .duration(lineData[i].speed)
                 .ease("linear")
+                .each("start", function () {
+                    console.log("I'm starting!");
+                })
                 .attr("stroke-dashoffset", lengthAt[i-1] || 0)
                 .each("end", function () {
                     console.log("Hello");
