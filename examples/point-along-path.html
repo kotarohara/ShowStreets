@@ -63,6 +63,8 @@
         var l = path.getTotalLength();
         return function(d, i, a) {
             return function(t) {
+                // Path.getPointAtLength()
+                // https://developer.mozilla.org/en-US/docs/Web/API/SVGPathElement
                 var p = path.getPointAtLength(t * l);
                 return "translate(" + p.x + "," + p.y + ")";
             };

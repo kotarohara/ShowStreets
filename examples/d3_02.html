@@ -69,44 +69,125 @@
 
     var map = L.map('map')
             .addLayer(mapboxTiles)
-            .setView([38.895955, -76.9807605], 14);
+            .setView([38.895955, -76.9807605], 16);
     var svg = d3.select(map.getPanes().overlayPane).append("svg");
     var g = svg.append("g").attr("class", "leaflet-zoom-hide");
+
+    /**
+     * This function converts a linestring into an array of points
+     * @param linestring A geojson representation of a linestring
+     */
+    function linestringToPoints (linestring) {
+        var points = [];
+        var coordinates = linestring.geometry.coordinates;
+        for (var i = 0; i < coordinates.length; i++) {
+            var point = {
+                "type": "Feature",
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": coordinates[i]
+                },
+                "properties": {
+                }
+            };
+            points.push(point);
+        }
+        return points;
+    }
 
     d3.json("sample.geojson", function(collection) {
         // https://github.com/mbostock/d3/wiki/Geo-Streams#stream-transforms
         var transform = d3.geo.transform({point: projectPoint}),
             path = d3.geo.path().projection(transform);
 
-        var feature = g.selectAll("path")
-                .data(collection.features)
-                .enter()
-                .append("path");
+        var featuresdata = linestringToPoints(collection.features[0]);
 
-        map.on("viewreset", reset);
-        reset();
+        var transform = d3.geo.transform({
+            point: projectPoint
+        });
 
-        function reset() {
-            var bounds = path.bounds(collection),
-                    topLeft = bounds[0],
-                    bottomRight = bounds[1];
+        var d3path = d3.geo.path().projection(transform);
 
-            // Transform the entire svg layer
-            svg.attr("width", bottomRight[0] - topLeft[0])
-                    .attr("height", bottomRight[1] - topLeft[1])
-                    .style("left", topLeft[0] + "px")
-                    .style("top", topLeft[1] + "px");
+        var n = 1;
+        function foo () {
+            // Create a function that generates a line from multiple points
+            var toLine = d3.svg.line()
+                    .interpolate("linear")
+                    .x(function (d) {
+                        return applyLatLngToLayer(d).x
+                    })
+                    .y(function (d) {
+                        return applyLatLngToLayer(d).y
+                    });
 
-            g.attr("transform", "translate(" + -topLeft[0] + "," + -topLeft[1] + ")");
 
-            // Setting data ("d") attribute
-            // https://github.com/mbostock/d3/wiki/Selections#attr
-            // path is a function. It evaluates the data stored in feature by applying path function,
-            // whichc is a stream transformation function described in the link above.
-            // Inside this stream transformation, the point's lat-lng coordinates are
-            // projected to the layer coordinate (y, x) by map.latLngToLayerPoint method.
-            feature.attr("d", path);
+            var linePath = g.selectAll(".lineConnect")
+                    .data([[featuresdata[n - 1], featuresdata[n]]])
+                    .enter()
+                    .append("path")
+                    .attr("class", "lineConnect");
+
+            var marker = g.append("circle")
+                    .attr("r", 10)
+                    .attr("id", "marker")
+                    .attr("class", "travelMarker");
+
+            // Adjust the view first
+            map.on("viewreset", reset);
+            reset();
+
+            transition(1);
+
+            function reset() {
+                // Get the bounding box and align the svg
+                var bounds = d3path.bounds(collection),
+                        topLeft = bounds[0],
+                        bottomRight = bounds[1];
+
+                marker.attr("transform", function () {
+                    var y = featuresdata[0].geometry.coordinates[1];
+                    var x = featuresdata[0].geometry.coordinates[0];
+                    return "translate(" +
+                            map.latLngToLayerPoint(new L.LatLng(y, x)).x + "," +
+                            map.latLngToLayerPoint(new L.LatLng(y, x)).y + ")";
+                });
+
+                svg.attr("width", bottomRight[0] - topLeft[0] + 120)
+                        .attr("height", bottomRight[1] - topLeft[1] + 120)
+                        .style("left", topLeft[0] - 50 + "px")
+                        .style("top", topLeft[1] - 50 + "px");
+
+                // Apply the toLine function to align the path to
+                linePath.attr("d", toLine);
+                g.attr("transform", "translate(" + (-topLeft[0] + 50) + "," + (-topLeft[1] + 50) + ")");
+            }
+
+
+            function transition () {
+                linePath.transition()
+                        .duration(1000)
+                        .attrTween("stroke-dasharray", tweenDash)
+                        .each("end", function () {
+                            n++;
+                            d3.select(this).call(transition);
+                        });
+            }
+
+            function tweenDash () {
+                return function (t) {
+                    var l = linePath.node().getTotalLength();
+
+                    var interpolate = d3.interpolateString("0," + l, l + "," + l);
+                    var marker = d3.select("#marker");
+
+                    var p = linePath.node().getPointAtLength(t * l);
+
+                    marker.attr("transform", "translate(" + p.x + "," + p.y + ")");
+                    return interpolate(t);
+                }
+            }
         }
+        foo();
     });
 
     function projectPoint(x, y) {
@@ -114,6 +195,11 @@
 
         // https://github.com/mbostock/d3/wiki/Geo-Streams#stream-transforms
         this.stream.point(point.x, point.y);
+    }
+    function applyLatLngToLayer(d) {
+        var y = d.geometry.coordinates[1]
+        var x = d.geometry.coordinates[0]
+        return map.latLngToLayerPoint(new L.LatLng(y, x))
     }
 
 </script>
