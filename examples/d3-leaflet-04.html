@@ -25,7 +25,8 @@
             position: relative;
         }
         path {
-            fill: none;
+            fill: #fff;
+            fill-opacity: 0.5;
             stroke: black;
             stroke-width: 2px;
             stroke-opacity: 1;
@@ -64,19 +65,57 @@
 <script type="text/javascript">
     L.mapbox.accessToken = 'pk.eyJ1Ijoia290YXJvaGFyYSIsImEiOiJDdmJnOW1FIn0.kJV65G6eNXs4ATjWCtkEmA';
 
-    var mapboxTiles = L.tileLayer('https://{s}.tiles.mapbox.com/v3/examples.map-zr0njcqy/{z}/{x}/{y}.png', {
+
+
+    // var tileUrl = "https://a.tiles.mapbox.com/v4/kotarohara.mmoldjeh/page.html?access_token=pk.eyJ1Ijoia290YXJvaGFyYSIsImEiOiJDdmJnOW1FIn0.kJV65G6eNXs4ATjWCtkEmA#13/38.8998/-77.0638";
+    var tileUrl = "https:\/\/a.tiles.mapbox.com\/v4\/kotarohara.8e0c6890\/{z}\/{x}\/{y}.png?access_token=pk.eyJ1Ijoia290YXJvaGFyYSIsImEiOiJDdmJnOW1FIn0.kJV65G6eNXs4ATjWCtkEmA";
+
+    var mapboxTiles = L.tileLayer(tileUrl, {
         attribution: '<a href="http://www.mapbox.com/about/maps/" target="_blank">Terms &amp; Feedback</a>'
     });
-
+//    var mapboxTiles = L.tileLayer('https://{s}.tiles.mapbox.com/v3/examples.map-zr0njcqy/{z}/{x}/{y}.png', {
+//        attribution: '<a href="http://www.mapbox.com/about/maps/" target="_blank">Terms &amp; Feedback</a>'
+//    });
     // Disable zoom
     // https://www.mapbox.com/mapbox.js/example/v1.0.0/disable-zooming-panning/
-    var map = L.map('map', {zoomControl: false})
+//    var map = L.mapbox.map('map', "mapbox.streets", {zoomControl: false})
+//            .addLayer(mapboxTiles)
+//            .setView([38.897, -76.980], 17);
+    var map = L.mapbox.map('map', "", {zoomControl: false})
             .addLayer(mapboxTiles)
             .setView([38.897, -76.980], 17);
 
+    // Restrict zooming
     map.touchZoom.disable();
     map.doubleClickZoom.disable();
     map.scrollWheelZoom.disable();
+
+    var overlayPolygon = {
+        "type": "FeatureCollection",
+        "features": [
+            {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [[-75, 36], [-75, 40], [-78, 40], [-78, 36],[-75, 36]]
+                    ]
+                }
+            }
+        ]
+    };
+    var myStyle = {
+        "color": "#fff",
+        "fill": true,
+        "fillColor": "#fff",
+        "weight": 5,
+        "opacity": 0.5
+
+    };
+    var overlayPolygonLayer = L.geoJson(overlayPolygon, {
+        style: myStyle
+    }).addTo(map);
 
 
     var svg = d3.select(map.getPanes().overlayPane).append("svg");
@@ -104,84 +143,72 @@
         return points;
     }
 
-    d3.json("sample.geojson", function(collection) {
-        // https://github.com/mbostock/d3/wiki/Geo-Streams#stream-transforms
-        var transform = d3.geo.transform({point: projectPoint});
-        var d3path = d3.geo.path().projection(transform);
+    function animate(filename) {
+        d3.json(filename, function(collection) {
+            // https://github.com/mbostock/d3/wiki/Geo-Streams#stream-transforms
+            var transform = d3.geo.transform({point: projectPoint});
+            var d3path = d3.geo.path().projection(transform);
+            var featuresdata = linestringToPoints(collection.features[0]);
+            var markerGroup = g.append("g");
+            var marker = markerGroup.append("circle")
+                    .attr("r", 10)
+                    .attr("id", "marker")
+                    .attr("class", "travelMarker");
+            var markerNose = markerGroup.append("line")
+                    .attr({'x1': 3, 'y1': 3, 'x2': 10, 'y2': 10})
+                    .attr('stroke', 'gray')
+                    .attr('stroke-width', 2);
 
+            // Adjust the view first
+            map.on("viewreset", reset);
+            reset();
 
-        var featuresdata = linestringToPoints(collection.features[0]);
-        var markerGroup = g.append("g");
-        var marker = markerGroup.append("circle")
-                .attr("r", 10)
-                .attr("id", "marker")
-                .attr("class", "travelMarker");
-        var markerNose = markerGroup.append("line")
-                .attr({'x1': 3, 'y1': 3, 'x2': 10, 'y2': 10})
-                .attr('stroke', 'gray')
-                .attr('stroke-width', 2);
+            var heading = 0;
+            for (var i = 1; i < featuresdata.length; i++) {
+                markerGroup = markerGroup.transition()
+                        .duration(1000)
+                        .attr("transform", function () {
+                            var y = featuresdata[i].geometry.coordinates[1];
+                            var x = featuresdata[i].geometry.coordinates[0];
+                            return "translate(" +
+                                    map.latLngToLayerPoint(new L.LatLng(y, x)).x + "," +
+                                    map.latLngToLayerPoint(new L.LatLng(y, x)).y + ")" +
+                                    "rotate(" + heading + ")";
+                        });
 
-        // Adjust the view first
-        map.on("viewreset", reset);
-        reset();
+                heading += 90;
+            }
+            markerGroup.transition()
+                    .duration(500)
+                    .remove();
 
-        var heading = 0;
-        for (var i = 1; i < featuresdata.length; i++) {
-            markerGroup = markerGroup.transition()
-                    .duration(1000)
-                    .attr("transform", function () {
-                        var y = featuresdata[i].geometry.coordinates[1];
-                        var x = featuresdata[i].geometry.coordinates[0];
-                        return "translate(" +
-                                map.latLngToLayerPoint(new L.LatLng(y, x)).x + "," +
-                                map.latLngToLayerPoint(new L.LatLng(y, x)).y + ")" +
-                                "rotate(" + heading + ")";
-                    });
+            function reset() {
+                // Get the bounding box and align the svg
+                var bounds = d3path.bounds(collection),
+                        topLeft = bounds[0],
+                        bottomRight = bounds[1];
+                svg.attr("width", bottomRight[0] - topLeft[0] + 120)
+                        .attr("height", bottomRight[1] - topLeft[1] + 120)
+                        .style("left", topLeft[0] - 50 + "px")
+                        .style("top", topLeft[1] - 50 + "px");
+                g.attr("transform", "translate(" + (-topLeft[0] + 50) + "," + (-topLeft[1] + 50) + ")");
 
-           heading += 90;
-        }
-        markerGroup.transition()
-                .duration(500)
-                .remove();
+                // Apply the toLine function to align the path to
+                markerGroup.attr("transform", function () {
+                    var y = featuresdata[0].geometry.coordinates[1];
+                    var x = featuresdata[0].geometry.coordinates[0];
+                    return "translate(" +
+                            map.latLngToLayerPoint(new L.LatLng(y, x)).x + "," +
+                            map.latLngToLayerPoint(new L.LatLng(y, x)).y + ")";
+                });
+            }
+        });
+    }
 
-
-
-        function reset() {
-            // Get the bounding box and align the svg
-            var bounds = d3path.bounds(collection),
-                    topLeft = bounds[0],
-                    bottomRight = bounds[1];
-            svg.attr("width", bottomRight[0] - topLeft[0] + 120)
-                    .attr("height", bottomRight[1] - topLeft[1] + 120)
-                    .style("left", topLeft[0] - 50 + "px")
-                    .style("top", topLeft[1] - 50 + "px");
-            g.attr("transform", "translate(" + (-topLeft[0] + 50) + "," + (-topLeft[1] + 50) + ")");
-
-            // Apply the toLine function to align the path to
-            markerGroup.attr("transform", function () {
-                var y = featuresdata[0].geometry.coordinates[1];
-                var x = featuresdata[0].geometry.coordinates[0];
-                return "translate(" +
-                        map.latLngToLayerPoint(new L.LatLng(y, x)).x + "," +
-                        map.latLngToLayerPoint(new L.LatLng(y, x)).y + ")";
-            });
-//
-//            marker.attr("transform", function () {
-//                var y = featuresdata[0].geometry.coordinates[1];
-//                var x = featuresdata[0].geometry.coordinates[0];
-//                return "translate(" +
-//                        map.latLngToLayerPoint(new L.LatLng(y, x)).x + "," +
-//                        map.latLngToLayerPoint(new L.LatLng(y, x)).y + ")";
-//            });
-//            markerNose.attr("transform", function () {
-//                var y = featuresdata[0].geometry.coordinates[1];
-//                var x = featuresdata[0].geometry.coordinates[0];
-//                return "translate(" +
-//                        map.latLngToLayerPoint(new L.LatLng(y, x)).x + "," +
-//                        map.latLngToLayerPoint(new L.LatLng(y, x)).y + ")";
-//            });
-        }
-    });
+    animate("sample.geojson");
+    window.setInterval(function () {
+        animate("sample.geojson");
+    }, 3000);
 
     function projectPoint(x, y) {
         var point = map.latLngToLayerPoint(new L.LatLng(y, x));
