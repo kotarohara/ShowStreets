@@ -216,7 +216,9 @@
                                         .attr("cx", p.x)
                                         .attr("cy", p.y)
                                         .attr("fill", "#fff")
-                                        .attr("color", "#ccc");
+                                        .attr("color", "#ccc")
+                                        .attr("stroke", "#888")
+                                        .attr("stroke-width", 1);
                             }
                         }
                         d3.select(this).attr("counter", ++counter);
