@@ -157,11 +157,11 @@
             var featuresdata = linestringToPoints(collection.features[0]);
             var markerGroup = g.append("g").data(featuresdata);
             var marker = markerGroup.append("circle")
-                    .attr("r", 10)
+                    .attr("r", 7)
                     .attr("id", "marker")
                     .attr("class", "travelMarker");
             var markerNose = markerGroup.append("line")
-                    .attr({'x1': 3, 'y1': 3, 'x2': 10, 'y2': 10})
+                    .attr({'x1': 0, 'y1': -3, 'x2': 0, 'y2': -10})
                     .attr('stroke', 'gray')
                     .attr('stroke-width', 2);
 
