@@ -17,6 +17,10 @@
         body {
             margin: 0;
         }
+        #container {
+            height: 100%;
+            width: 100%;
+        }
         #map {
             width: 100%;
             height: 100%;
@@ -61,8 +65,9 @@
 
 </head>
 <body>
-<div id="demo"></div>
-<div id="map"></div>
+<div id="container">
+    <div id="map"></div>
+</div>
 <script type="text/javascript">
     L.mapbox.accessToken = 'pk.eyJ1Ijoia290YXJvaGFyYSIsImEiOiJDdmJnOW1FIn0.kJV65G6eNXs4ATjWCtkEmA';
 
@@ -76,7 +81,7 @@
 
     var map = L.mapbox.map('map', "kotarohara.8e0c6890", {zoomControl: false})
             // .addLayer(mapboxTiles)
-            .setView([38.90965, -77.03765], 17);
+            .setView([38.910, -77.040], 17);
 
     // Don't allow zooming (yet!)
     map.touchZoom.disable();
@@ -244,5 +249,4 @@
 
 </script>
 </body>
-
 </html>
