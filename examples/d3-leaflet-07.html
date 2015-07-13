@@ -25,7 +25,7 @@
             position: relative;
         }
         path {
-            fill: #888;
+            fill: #ccc;
             fill-opacity: 0.3;
             stroke: none;
             stroke-width: 2px;
@@ -139,7 +139,7 @@
         var featuresdata = walkTrajectory.features;
         var markerGroup = g.append("g").data(featuresdata);
         var marker = markerGroup.append("circle")
-                .attr("r", 7)
+                .attr("r", 2)
                 .attr("id", "marker")
                 .attr("class", "travelMarker");
         var markerNose = markerGroup.append("line")
@@ -178,7 +178,19 @@
                     map.latLngToLayerPoint(new L.LatLng(y, x)).y + ")";
         });
 
-        markerGroup.attr("counter", 1);
+        // Animate the marker
+        markerGroup = markerGroup.attr("counter", 0)
+                .transition()
+                .each("start", function () {
+                    var thisMarker = d3.select(d3.select(this).node().children[0]);
+                    var thisMarkerNose = d3.select(d3.select(this).node().children[0]);
+
+                    thisMarker.transition()
+                            .duration(300)
+                            .attr("r", 7);
+                })
+                .duration(1000);
+
         for (var i = 0; i < featuresdata.length; i++) {
             markerGroup = markerGroup.transition()
                     .duration(500)
@@ -210,16 +222,16 @@
                         d3.select(this).attr("counter", ++counter);
                     });
         }
-        markerGroup = markerGroup.transition().duration(500).remove();
-//        markerGroup = markerGroup.attr("transform", function () {
-//            var y = featuresdata[featuresdata.length - 1].geometry.coordinates[1];
-//            var x = featuresdata[featuresdata.length - 1].geometry.coordinates[0];
-//            var heading = featuresdata[featuresdata.length - 1].properties.heading;
-//            return "translate(" +
-//                    map.latLngToLayerPoint(new L.LatLng(y, x)).x + "," +
-//                    map.latLngToLayerPoint(new L.LatLng(y, x)).y + ")" +
-//                    "rotate(" + heading + ")";
-//        }).remove();
+        markerGroup = markerGroup.transition()
+                .each("start", function () {
+                    var thisMarker = d3.select(d3.select(this).node().children[0]);
+                    thisMarker.transition()
+                            .delay(500)
+                            .duration(300)
+                            .attr("r", 1);
+                })
+                .duration(800)
+                .remove();
     }
 
     function projectPoint(x, y) {
