@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>The d3 test</title>
+    <style>
+      .chart {
+
+      }
+
+      .main text {
+          font: 10px sans-serif;
+      }
+
+      .axis line, .axis path {
+          shape-rendering: crispEdges;
+          stroke: black;
+          fill: none;
+      }
+
+      circle {
+          fill: steelblue;
+      }
+
+    </style>
+    <script src="../lib/d3.v3.js"></script>
+  </head>
+  <body>
+    <div class='content'>
+          <!-- /the chart goes here -->
+        </div>
+        <script type="text/javascript">
+          var radius = 0.3,
+            data = [];
+          var number = 35;
+          var margin = {top: 10, right: 10, bottom: 10, left: 10},
+            width = 300 - margin.left - margin.right,
+            height = 50 - margin.top - margin.bottom;
+          var x = d3.scale.linear()
+                    .domain([0, 20])
+                    .range([0, width]);
+
+          var y = d3.scale.linear()
+                  .domain([0, 20])
+                  .range([height, 0]);
+
+          var chart = d3.select('body')
+                        .append('svg')
+                        .attr('width', width + margin.right + margin.left)
+                        .attr('height', height + margin.top + margin.bottom)
+                        .attr('class', 'chart')
+
+          var main = chart.append('g')
+                        .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+                        .attr('width', width)
+                        .attr('height', height)
+                        .attr('class', 'main');
+
+          var g = main.append("g");
+
+          function update(number) {
+            var firstDigit = number % 10,
+              higherDigits = (number - firstDigit) / 10,
+              count = firstDigit + higherDigits;
+
+            if (data.length > 0) {
+              for (var i = 0; i < higherDigits; i++) {
+                data[i][2] = 0.5;
+              }
+            }
+
+            if (data.length >= count) {
+              // Remove transition
+              data = data.slice(0, count);
+              g.selectAll("circle")
+                .transition().duration(500)
+                .attr("r", function (d, i) {
+                  return i < higherDigits ? x(0.5) : x(0.3);
+              });
+
+              g.selectAll("circle")
+                .data(data)
+                .exit()
+                .transition()
+                .duration(500)
+                .attr("cx", function () { return x(higherDigits); })
+                .attr("r", 0)
+                .remove();
+
+
+            } else {
+              // Add data
+              var len = data.length;
+              for (var i = 0; i < count - len; i++) {
+                  data.push([len + i, 0, radius])
+              }
+              g.selectAll("circle")
+                .data(data)
+                .enter().append("circle")
+                .attr("cx", 0)
+                .attr("cy", 0)
+                .transition().duration(1000)
+                .attr("cx", function (d, i) { return x(d[0]); })
+                .attr("r", function (d, i) {
+                  console.log(i, higherDigits, x(radius), x(0.5))
+                  return i < higherDigits ? x(0.5) : x(0.3);
+                });
+            }
+          }
+          update(35);
+          var num = 36;
+          setInterval(function () {
+            update(num++);
+          }, 1000);
+
+        </script>
+      </body>
+    </html>
