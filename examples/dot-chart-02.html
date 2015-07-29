@@ -30,8 +30,7 @@
           <!-- /the chart goes here -->
         </div>
         <script type="text/javascript">
-        var data = [[5,3], [10,17], [15,4], [2,8]];
-        // var data = d3.range([0, 10]);
+        var data = d3.range(0, 10, 1).map(function (d) { return [d, 0]});
 
   var margin = {top: 10, right: 10, bottom: 30, left: 30}
     , width = 300 - margin.left - margin.right
