@@ -18,9 +18,6 @@
           fill: none;
       }
 
-      /*circle {
-          fill: steelblue;
-      }*/
 
     </style>
     <script src="../lib/d3.v3.js"></script>
@@ -30,11 +27,13 @@
           <!-- /the chart goes here -->
         </div>
         <script type="text/javascript">
-          var radius = 0.3, dR = 0.2, fillColor = "steelblue";
-          var svgWidth = 600, svgHeight = 50;
+          var radius = 0.4, dR = radius / 2;
+          var svgWidth = 800, svgHeight = 50;
           var margin = {top: 10, right: 10, bottom: 10, left: 10},
-            width = 300 - margin.left - margin.right,
+            padding = {left: 5, top: 15},
+            width = 200 - margin.left - margin.right,
             height = 50 - margin.top - margin.bottom;
+
           var x = d3.scale.linear()
                     .domain([0, 20])
                     .range([0, width]);
@@ -51,33 +50,58 @@
 
           // Prepare a group to store svg elements, and declare a text
           var dotPlots = {
-            "item1": {
+            "Curb Ramp": {
               left: margin.left,
               top: margin.top,
+              fillColor: "steelblue",
               count: 11,
               data: []
             },
-            "item2": {
+            "Missing Curb Ramp": {
               left: width + margin.left,
               top: margin.top,
-              count: 42,
+              fillColor: "rgba(0, 0, 0, 1)",
+              count: 40,
               data: []
-            }};
+            },
+            "Obstacles in Path": {
+              left: 2 * width + margin.left,
+              top: margin.top,
+              fillColor: "rgba(0, 0, 0, 1)",
+              count: 40,
+              data: []
+            },
+            "Surface Problems": {
+              left: 3 * width + margin.left,
+              top: margin.top,
+              fillColor: "rgba(0, 0, 0, 1)",
+              count: 40,
+              data: []
+            }
+          };
+
           for (var key in dotPlots) {
             dotPlots[key].g = chart.append('g')
                           .attr('transform', 'translate(' + dotPlots[key].left + ',' + dotPlots[key].top + ')')
                           .attr('width', width)
                           .attr('height', height)
                           .attr('class', 'main');
-            dotPlots[key].plot = dotPlots[key].g.append("g");
-            dotPlots[key].label = dotPlots[key].plot.selectAll("text")
+            dotPlots[key].plot = dotPlots[key].g.append("g")
+              .attr('transform', 'translate(' + padding.left + ',' + padding.top + ')');
+
+            dotPlots[key].label = dotPlots[key].g.selectAll("text.label")
+              .data([0])
+              .enter()
+              .append("text")
+              .text(key)
+              .style("font-size", "13px");
+            dotPlots[key].countLabel = dotPlots[key].plot.selectAll("text.count-label")
               .data([0])
               .enter()
               .append("text")
               .style("font-size", "13px")
               .style("fill", "gray");
           }
-
 
           function update(key) {
             // If a key is given, udpate the dot plot for that specific data.
@@ -97,10 +121,10 @@
                 count = firstDigit + higherDigits;
 
               // Update the label
-              dotPlots[key].label.transition()
+              dotPlots[key].countLabel.transition()
                 .duration(1000)
                 .attr("x", function () {
-                  return x(higherDigits) + x((count - higherDigits) * 2 * radius)
+                  return x(higherDigits * 2 * (radius + dR) + firstDigit * 2 * radius)
                 })
                 .attr("y", function () {
                   return x(radius + dR - 0.05);
@@ -127,7 +151,9 @@
                     .exit()
                     .transition()
                     .duration(500)
-                    .attr("cx", function () { return x(higherDigits); })
+                    .attr("cx", function () {
+                      return x(higherDigits);
+                    })
                     .attr("r", 0)
                     .remove();
               } else {
@@ -142,13 +168,13 @@
                   .attr("cx", x(0))
                   .attr("cy", 0)
                   .attr("r", x(radius + dR))
-                  .style("fill", fillColor)
+                  .style("fill", dotPlots[key].fillColor)
                   .transition().duration(1000)
                   .attr("cx", function (d, i) {
                     if (i <= higherDigits) {
-                      return x(d[0]);
+                      return x(d[0] * 2 * (radius + dR));
                     } else {
-                      return x(higherDigits) + x((i - higherDigits) * 2 * radius)
+                      return x((higherDigits) * 2 * (radius + dR)) + x((i - higherDigits) * 2 * radius)
                     }
                   })
                   .attr("cy", function (d, i) {
