@@ -27,6 +27,7 @@
           <!-- /the chart goes here -->
         </div>
         <script type="text/javascript">
+        (function dotPlotVisualization () {
           var radius = 0.4, dR = radius / 2;
           var svgWidth = 800, svgHeight = 50;
           var margin = {top: 10, right: 10, bottom: 10, left: 10},
@@ -198,7 +199,7 @@
             dotPlots[keys[idx]].count += 1
             update(keys[idx]);
           }, 1500);
-
+        })();
         </script>
       </body>
     </html>
